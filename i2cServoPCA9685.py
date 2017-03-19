@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-        Pine64 - PCA9685 PWM Servo driver 
+        Pine64 - PCA9685 PWM Servo driver
         Derived from the ADAFRUIT raspberry pi driver located at https://learn.adafruit.com/micropython-hardware-pca9685-pwm-and-servo-driver/software?view=all
 
         Free to use according to their license
@@ -15,7 +15,7 @@
                 $sudo apt-get install python-smbus i2c-tools
         USAGE:
                 from i2cServoPCA9685 import PWN_DRIVER as PWN
-                
+
                 def run():
                     a = PWN()
                     a.test_servo()
@@ -33,10 +33,10 @@ class PWN_DRIVER:
         return: Nothing
     '''
     def __init__(self):
-	''' Here come the constants for this program '''
-	self.DEBUG = 0
-	self.I2C_CHAN = 1
-	self.DRIVER_ADDR = 0x40
+        ''' Here come the constants for this program '''
+        self.DEBUG = 0
+        self.I2C_CHAN = 1
+        self.DRIVER_ADDR = 0x40
 
         # Set the bus to correct channel
         self.bus = smbus.SMBus(self.I2C_CHAN)
@@ -69,33 +69,33 @@ class PWN_DRIVER:
         self.MAX_DEGREE         = 180
         self.MIN_PWR            = 150
         self.MAX_PWR            = 600
-    
+
     '''
         name: initialize
-        Input: 
+        Input:
         Short: Initializes the bus to the driver through I2C_CHAN
         return: Nothing
     '''
     def initialize(self):
-	''' Software Reset, by setting the led0_low'''
-	self.bus.write_byte(self.DRIVER_ADDR, self.LED0_ON_L)
-	''' Set all pwm to 0 '''
-	self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_ON_L, 0 & 0xFF)
-	self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_ON_H, 0 >> 8)
-	self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_OFF_L, 0 & 0xFF)
-	self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_OFF_H, 0 & 0xFF)
-	
-	''' Setting modes for starter'''
-	self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE2, self.OUTDRV)
-	self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, self.ALLCALL)
-	time.sleep(0.005)
-	mode1 = self.bus.read_byte_data(self.DRIVER_ADDR, self.MODE1)
-	mode1 = mode1 & ~self.SLEEP
-	self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, mode1)
-	time.sleep(0.005)
-	
-	# We will start by using 60Hz for the servos, if you need more then setFreq
-	self.setFreq(60)
+        ''' Software Reset, by setting the led0_low'''
+        self.bus.write_byte(self.DRIVER_ADDR, self.LED0_ON_L)
+        ''' Set all pwm to 0 '''
+        self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_ON_L, 0 & 0xFF)
+        self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_ON_H, 0 >> 8)
+        self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_OFF_L, 0 & 0xFF)
+        self.bus.write_byte_data(self.DRIVER_ADDR, self.ALL_LED_OFF_H, 0 & 0xFF)
+
+    	''' Setting modes for starter'''
+        self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE2, self.OUTDRV)
+        self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, self.ALLCALL)
+        time.sleep(0.005)
+        mode1 = self.bus.read_byte_data(self.DRIVER_ADDR, self.MODE1)
+        mode1 = mode1 & ~self.SLEEP
+        self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, mode1)
+        time.sleep(0.005)
+
+        # We will start by using 60Hz for the servos, if you need more then setFreq
+        self.setFreq(60)
 
     '''
         name: setFreq
@@ -108,8 +108,8 @@ class PWN_DRIVER:
         presc /= 4096.0    # 12-bit PCM9685
         presc /=float(freq)
         presc -= 1.0
-        presc = math.floor(prescaleval + 0.5)
-        
+        presc = math.floor(presc + 0.5)
+
         oldm = self.bus.read_byte_data(self.DRIVER_ADDR, self.MODE1);
         newm = (oldm & 0x7F) | 0x10
         self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, newm)
@@ -142,7 +142,7 @@ class PWN_DRIVER:
         Short: Function to drive the servo in degrees
         return: Nothing
     '''
-    def turn_degrees(self, channel=None, deg=None):
+    def turn_degrees(self, channel=None, deg=None, rad=None):
         ''' 0 is all the way to the left
             90 is straight forward
             190 is all the way to the right'''
@@ -150,17 +150,19 @@ class PWN_DRIVER:
             print("You need to input some channel and degree's")
             return
         SP = self.MAX_PWR - self.MIN_PWR
-    
-        turn_degree = self.MIN_PWR + SP * deg / self.MAX_DEGREE
+        if deg is not None:
+            turn_degree = self.MIN_PWR + SP * deg / self.MAX_DEGREE
+        elif rad is not None:
+            turn_degree = self.MIN_PWR + SP * rad / math.radians(self.MAX_DEGREE)
         if self.DEBUG:
             print("Turns " + str(deg) + " degrees" + " That is in power " + str(turn_degree))
 
-        self.servo(channel, 0, turn_degree) 
-    
+        self.servo(channel, 0, turn_degree)
+
     '''
         name: test_servo
         Input: Nothing
-        Short: Function for testing the servo by turning 
+        Short: Function for testing the servo by turning
         middle(90deg), left(0Deg) , middle(90Deg) , right(180Deg), middle(90Deg)
         return: Nothing
     '''
