@@ -14,7 +14,7 @@
 
                 $sudo apt-get install python-smbus i2c-tools
         USAGE:
-                import PWN_DRIVER as PWN
+                from i2cServoPCA9685 import PWN_DRIVER as PWN
                 
                 def run():
                     a = PWN()
@@ -34,7 +34,7 @@ class PWN_DRIVER:
     '''
     def __init__(self):
 	''' Here come the constants for this program '''
-	self.DEBUG = 1
+	self.DEBUG = 0
 	self.I2C_CHAN = 1
 	self.DRIVER_ADDR = 0x40
 
@@ -160,15 +160,18 @@ class PWN_DRIVER:
     '''
         name: test_servo
         Input: Nothing
-        Short: Function for testing the servo by turning left(0Deg) , middle(90Deg) , right(180Deg)
+        Short: Function for testing the servo by turning 
+        middle(90deg), left(0Deg) , middle(90Deg) , right(180Deg), middle(90Deg)
         return: Nothing
     '''
     def test_servo(self):
-        a = PWN_DRIVER()
-        for i in range(0, 4):
-            a.turn_degrees(i, 0)
+        for i in range(0, 15):
+            self.turn_degrees(i, 90)
             time.sleep(2)
-            a.turn_degrees(i, 90)
+            self.turn_degrees(i, 0)
             time.sleep(2)
-            a.turn_degrees(i, 180)
-
+            self.turn_degrees(i, 90)
+            time.sleep(2)
+            self.turn_degrees(i, 180)
+            time.sleep(2)
+            self.turn_degrees(i, 90)
