@@ -146,7 +146,7 @@ class PWN_DRIVER:
         ''' 0 is all the way to the left
             90 is straight forward
             190 is all the way to the right'''
-        if channel == None or deg == None:
+        if channel is None or (deg is None and rad is None):
             print("You need to input some channel and degree's")
             return
         SP = self.MAX_PWR - self.MIN_PWR
@@ -154,6 +154,7 @@ class PWN_DRIVER:
             turn_degree = self.MIN_PWR + SP * deg / self.MAX_DEGREE
         elif rad is not None:
             turn_degree = self.MIN_PWR + SP * rad / math.radians(self.MAX_DEGREE)
+
         if self.DEBUG:
             print("Turns " + str(deg) + " degrees" + " That is in power " + str(turn_degree))
 
