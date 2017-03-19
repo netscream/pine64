@@ -38,13 +38,14 @@ class PWN_DRIVER:
     def __init__(self, DRIVER_ADDR=0x40, I2C_CHAN=1, DEBUG=0):
         ''' Here come the constants for this program '''
         self.DEBUG = DEBUG
+        
         self.I2C_CHAN = I2C_CHAN
         self.DRIVER_ADDR = DRIVER_ADDR
 
         # Set the bus to correct channel
         self.bus = smbus.SMBus(self.I2C_CHAN)
 
-        ''' Constants here are from the adafruit python scripts'''
+        ''' Constants here are from the adafruit python scripts '''
         # Registers/etc.
         self.MODE1 = 0x00
         self.MODE2 = 0x01
@@ -69,10 +70,11 @@ class PWN_DRIVER:
         self.OUTDRV = 0x04
 
         # Servo constants
+        self.FREQUENCY = 60
         self.MAX_DEGREE = 180
         self.MIN_PWR = 150
         self.MAX_PWR = 600
-
+        self.initialize()
     '''
         name: initialize
         Input:
@@ -85,11 +87,11 @@ class PWN_DRIVER:
             self.bus.write_byte(self.DRIVER_ADDR, self.LED0_ON_L)
 
             ''' Set all pwm to 0 '''
-            self.bus.write_byte_data(self.DRIVER_ADDR,
-                                     self.ALL_LED_ON_L,
+            self.bus.write_byte_data(self.DRIVER_ADDR, 
+                                     self.ALL_LED_ON_L, 
                                      0 & 0xFF)
-            self.bus.write_byte_data(self.DRIVER_ADDR,
-                                     self.ALL_LED_ON_H,
+            self.bus.write_byte_data(self.DRIVER_ADDR, 
+                                     self.ALL_LED_ON_H, 
                                      0 >> 8)
             self.bus.write_byte_data(self.DRIVER_ADDR,
                                      self.ALL_LED_OFF_L,
@@ -125,7 +127,7 @@ class PWN_DRIVER:
             We will start by using 60Hz for the servos,
             if you need more then setFreq
         '''
-        self.setFreq(60)
+        self.setFreq(self.FREQUENCY)
 
     '''
         name: setFreq
@@ -144,9 +146,7 @@ class PWN_DRIVER:
         newm = (oldm & 0x7F) | 0x10
         try:
             self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, newm)
-            self.bus.write_byte_data(self.DRIVER_ADDR,
-                                     self.PRESCALE,
-                                     int(math.floor(presc)))
+            self.bus.write_byte_data(self.DRIVER_ADDR, self.PRESCALE, int(math.floor(presc)))
             self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, oldm)
             time.sleep(0.005)
             self.bus.write_byte_data(self.DRIVER_ADDR, self.MODE1, oldm | 0x80)
@@ -157,7 +157,7 @@ class PWN_DRIVER:
                       ". With frequency set to " +
                       str(freq) + "Hz")
         else:
-            if self.Debug:
+            if self.DEBUG:
                 print("Frequency set to " + str(freq) + "Hz")
 
     '''
@@ -188,7 +188,7 @@ class PWN_DRIVER:
                       str(str(self.DRIVER_ADDR)))
 
         else:
-            if self.Debug:
+            if self.DEBUG:
                 print("Servo on channel: " + str(channel) +
                       " set to on: " + str(on) +
                       " and to off: " + str(off))
@@ -200,12 +200,14 @@ class PWN_DRIVER:
         return: Nothing
     '''
     def turn_degrees(self, channel=None, deg=None, rad=None):
-        ''' 0 is all the way to the left
+        ''' While lookint at the servo in its begin position then
+            0 is all the way to the left
             90 is straight forward
             180 is all the way to the right'''
         if channel is None or (deg is None and rad is None):
             print("You need to input some channel and degree's")
             return
+
         SP = self.MAX_PWR - self.MIN_PWR
         if deg is not None:
             turn_degree = (self.MIN_PWR +
@@ -228,8 +230,12 @@ class PWN_DRIVER:
         middle(90deg), left(0Deg) , middle(90Deg) , right(180Deg), middle(90Deg)
         return: Nothing
     '''
-    def test_servo(self):
-        for i in range(0, 15):
+    def test_servo(self, from_no=0, to_no=4, freq=60):
+        if freq != self.FREQUENCY:
+            self.setFreq(freq)
+            if self.DEBUG:
+                print("Frequency set to: " + str(freq) + "Hz")
+        for i in range(from_no, to_no):
             self.turn_degrees(i, 90)
             time.sleep(2)
             self.turn_degrees(i, 0)
@@ -239,3 +245,5 @@ class PWN_DRIVER:
             self.turn_degrees(i, 180)
             time.sleep(2)
             self.turn_degrees(i, 90)
+
+
