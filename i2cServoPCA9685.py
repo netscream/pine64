@@ -202,7 +202,7 @@ class PWN_DRIVER:
     def turn_degrees(self, channel=None, deg=None, rad=None):
         ''' 0 is all the way to the left
             90 is straight forward
-            190 is all the way to the right'''
+            180 is all the way to the right'''
         if channel is None or (deg is None and rad is None):
             print("You need to input some channel and degree's")
             return
